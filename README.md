@@ -4,9 +4,13 @@ Este é um sistema web para gerenciamento de lobbies de RPG, permitindo que mest
 Funcionalidades
 
 *Autenticação de Usuário: Registro e login utilizando JWT.
+
 *Criação de Lobbies: Mestres podem criar lobbies e convidar jogadores.
+
 *Gerenciamento de Fichas: Cada jogador pode criar, editar e visualizar apenas sua própria ficha.
+
 *Visualização pelo Mestre: O mestre do lobby pode ver todas as fichas de personagens.
+
 *Sistema de Convites: Jogadores podem ser convidados para lobbies.
 
 Tecnologias Utilizadas
@@ -14,26 +18,35 @@ Tecnologias Utilizadas
 Front-end
 
 *React.js
+
 *React Router
 
 Back-end
 
 *Node.js com Express.js (API REST)
+
 *Prisma ORM (para interação com o banco de dados)
+
 *JSON Web Token (JWT) para autenticação
 
 Banco de Dados
 
 *PostgreSQL
+
 *SQLite (testes)
 
 Estrutura do Projeto
 
 /rpg-lobby-system
+
 │── /client (Front-end React)
+
 │── /server (Back-end Node.js)
+
 │── /database (Configuração do Prisma e esquemas)
+
 │── .env (Configuração de variáveis de ambiente)
+
 │── README.md
 
 Como Rodar o Projeto
@@ -41,6 +54,7 @@ Como Rodar o Projeto
 Requisitos
 
 *Node.js e npm instalados
+
 *PostgreSQL configurado (ou SQLite para testes)
 
 Passos
