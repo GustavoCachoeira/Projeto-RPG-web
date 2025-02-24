@@ -1,7 +1,7 @@
 # Projeto-RPG-web
 Este é um sistema web para gerenciamento de lobbies de RPG, permitindo que mestres criem lobbies, convidem jogadores e gerenciem fichas de personagens. Os jogadores podem visualizar e editar apenas suas próprias fichas, enquanto o mestre tem acesso a todas.
 
-Funcionalidades
+Funcionalidades 🚀🎯🛡️
 
 *Autenticação de Usuário: Registro e login utilizando JWT.
 
@@ -14,7 +14,7 @@ Funcionalidades
 *Sistema de Convites: Jogadores podem ser convidados para lobbies.
 
 
-Tecnologias Utilizadas
+Tecnologias Utilizadas 🖥️🛠️🔗
 
 Front-end
 
@@ -39,7 +39,7 @@ Banco de Dados
 *SQLite (testes)
 
 
-Estrutura do Projeto
+Estrutura do Projeto 📂📌📜
 
 /rpg-lobby-system
 
@@ -54,16 +54,16 @@ Estrutura do Projeto
 │── README.md
 
 
-Como Rodar o Projeto
+Como Rodar o Projeto 🏗️⚙️🚀
 
-Requisitos
+Requisitos 🖥️📦✅
 
 *Node.js e npm instalados
 
 *PostgreSQL configurado (ou SQLite para testes)
 
 
-Passos
+Passos 🏃💨🛠️
 
 1.Clone o repositório
 git clone https://github.com/GustavoCachoeira/Projeto-RPG-web.git
@@ -90,7 +90,7 @@ cd client
 npm run dev
 
 
-Planejamento do CRUD e Transação
+Planejamento do CRUD e Transação 🔄🗂️🔐
 
 CRUD
 
@@ -104,7 +104,7 @@ Transação
 Sistema de Convites: O mestre pode convidar jogadores, e a entrada no lobby será processada como uma transação segura no banco de dados.
 
 
-Melhorias Futuras
+Melhorias Futuras 🚀✨📈
 
 Integração com chat via WebSocket.
 
