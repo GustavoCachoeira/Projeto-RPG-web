@@ -66,22 +66,30 @@ Requisitos 🖥️📦✅
 Passos 🏃💨🛠️
 
 1.Clone o repositório
+
 git clone https://github.com/GustavoCachoeira/Projeto-RPG-web.git
 
 
 2.Instale as dependências
+
 cd server
+
 npm install
+
 cd ../client
+
 npm install
 
 
 3.Configure as variáveis de ambiente
+
 Crie um arquivo .env na raiz do backend e defina as credenciais do banco de dados e chave JWT
 
 
 4.Rode o backend
+
 cd server
+
 npm run dev
 
 
