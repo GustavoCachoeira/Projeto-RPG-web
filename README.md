@@ -13,6 +13,7 @@ Funcionalidades
 
 *Sistema de Convites: Jogadores podem ser convidados para lobbies.
 
+
 Tecnologias Utilizadas
 
 Front-end
@@ -20,6 +21,7 @@ Front-end
 *React.js
 
 *React Router
+
 
 Back-end
 
@@ -29,11 +31,13 @@ Back-end
 
 *JSON Web Token (JWT) para autenticação
 
+
 Banco de Dados
 
 *PostgreSQL
 
 *SQLite (testes)
+
 
 Estrutura do Projeto
 
@@ -49,6 +53,7 @@ Estrutura do Projeto
 
 │── README.md
 
+
 Como Rodar o Projeto
 
 Requisitos
@@ -57,10 +62,12 @@ Requisitos
 
 *PostgreSQL configurado (ou SQLite para testes)
 
+
 Passos
 
 1.Clone o repositório
 git clone https://github.com/GustavoCachoeira/Projeto-RPG-web.git
+
 
 2.Instale as dependências
 cd server
@@ -68,28 +75,41 @@ npm install
 cd ../client
 npm install
 
+
 3.Configure as variáveis de ambiente
 Crie um arquivo .env na raiz do backend e defina as credenciais do banco de dados e chave JWT
+
 
 4.Rode o backend
 cd server
 npm run dev
 
+
 5.Rode o frontend
 cd client
 npm run dev
 
+
 Planejamento do CRUD e Transação
 
 CRUD
+
 Fichas de Personagens: Criar, ler, atualizar e deletar fichas associadas a um jogador.
+
 Lobbies: Criar e excluir lobbies (apenas pelo mestre).
 
+
 Transação
+
 Sistema de Convites: O mestre pode convidar jogadores, e a entrada no lobby será processada como uma transação segura no banco de dados.
 
+
 Melhorias Futuras
+
 Integração com chat via WebSocket.
+
 Permissões adicionais para cargos dentro do lobby.
+
 Exportação de fichas para PDF.
+
 Melhorias no design e usabilidade.
