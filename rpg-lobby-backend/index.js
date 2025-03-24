@@ -140,24 +140,137 @@ app.post('/lobbies', authenticateToken, async (req, res) => {
       console.error(error);
       res.status(500).json({ error: 'Erro ao criar lobby' });
     }
-  });
+});
   
-  // Rota para listar lobbies do mestre (opcional)
-  app.get('/lobbies', authenticateToken, async (req, res) => {
-    const user = req.user;
+// Rota para listar lobbies do mestre (opcional)
+app.get('/lobbies', authenticateToken, async (req, res) => {
+  const user = req.user;
   
-    try {
-      const lobbies = await prisma.lobby.findMany({
-        where: {
-          masterId: user.id,
-        },
-      });
-      res.json(lobbies);
-    } catch (error) {
+  try {
+    const lobbies = await prisma.lobby.findMany({
+       where: {
+         masterId: user.id,
+       },
+     });
+    res.json(lobbies);
+  } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Erro ao listar lobbies' });
+  }
+});
+
+app.post('/invites', authenticateToken, async (req, res) => {
+  const { lobbyId, playerEmail } = req.body;
+  const user = req.user; // Mestre autenticado
+  
+  // Verifica se o usuário é mestre
+  if (user.role !== 'master') {
+    return res.status(403).json({ error: 'Apenas mestres podem enviar convites' });
+  }
+  
+  // Validação básica
+  if (!lobbyId || !playerEmail) {
+    return res.status(400).json({ error: 'lobbyId e playerEmail são obrigatórios' });
+  }
+  
+  try {
+    // Verifica se o lobby existe e pertence ao mestre
+    const lobby = await prisma.lobby.findUnique({
+      where: { id: lobbyId },
+    });
+    if (!lobby || lobby.masterId !== user.id) {
+      return res.status(403).json({ error: 'Lobby não encontrado ou não pertence ao mestre' });
     }
-  });
+  
+    // Busca o jogador pelo email
+    const player = await prisma.user.findUnique({
+      where: { email: playerEmail },
+    });
+    if (!player) {
+      return res.status(404).json({ error: 'Jogador não encontrado' });
+    }
+    if (player.role === 'master') {
+      return res.status(400).json({ error: 'Não é possível convidar outro mestre' });
+    }
+  
+    // Verifica se já existe um convite pendente
+    const existingInvite = await prisma.invite.findFirst({
+      where: { lobbyId, playerId: player.id, status: 'pending' },
+    });
+    if (existingInvite) {
+      return res.status(400).json({ error: 'Já existe um convite pendente para este jogador neste lobby' });
+    }
+  
+    // Cria o convite
+    const invite = await prisma.invite.create({
+      data: {
+        lobbyId,
+        playerId: player.id,
+        status: 'pending',
+      },
+    });
+  
+    res.status(201).json({ message: 'Convite enviado com sucesso', invite });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao enviar convite' });
+  }
+});
+  
+// Rota para listar convites recebidos (apenas jogadores)
+app.get('/invites', authenticateToken, async (req, res) => {
+  const user = req.user;
+  
+  try {
+    const invites = await prisma.invite.findMany({
+      where: { playerId: user.id, status: 'pending' },
+      include: { lobby: true }, // Inclui detalhes do lobby
+    });
+    res.json(invites);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Erro ao listar convites' });
+  }
+});
+  
+  // Rota para aceitar ou rejeitar um convite (apenas jogadores)
+app.patch('/invites/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body; // "accepted" ou "rejected"
+  const user = req.user;
+
+  // Validação
+  if (!status || !['accepted', 'rejected'].includes(status)) {
+    return res.status(400).json({ error: 'Status deve ser "accepted" ou "rejected"' });
+  }
+
+  try {
+    // Busca o convite
+    const invite = await prisma.invite.findUnique({
+      where: { id: parseInt(id) },
+    });
+    if (!invite) {
+      return res.status(404).json({ error: 'Convite não encontrado' });
+    }
+    if (invite.playerId !== user.id) {
+      return res.status(403).json({ error: 'Você não tem permissão para modificar este convite' });
+    }
+    if (invite.status !== 'pending') {
+      return res.status(400).json({ error: 'Este convite já foi processado' });
+    }
+
+    // Atualiza o status do convite
+    const updatedInvite = await prisma.invite.update({
+      where: { id: invite.id },
+      data: { status },
+    });
+  
+    res.json({ message: `Convite ${status === 'accepted' ? 'aceito' : 'rejeitado'} com sucesso`, invite: updatedInvite });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Erro ao atualizar convite' });
+    }
+});
 
 // Inicia o servidor
 app.listen(PORT, () => {
