@@ -60,44 +60,104 @@ Como Rodar o Projeto 🏗️⚙️🚀
 
 Requisitos 🖥️📦✅
 
-*Node.js e npm instalados
+Antes de começar, certifique-se de ter os seguintes itens instalados no seu sistema:
 
-*PostgreSQL configurado (ou SQLite para testes)
+- **Node.js** (versão 16 ou superior): [Baixe aqui](https://nodejs.org/)
+- **npm** (geralmente instalado junto com o Node.js)
+- **PostgreSQL** (versão 12 ou superior): [Baixe aqui](https://www.postgresql.org/download/)
+- **Git**: Para clonar o repositório (opcional, se você baixar o código manualmente)
 
 
 Passos 🏃💨🛠️
 
 1.Clone o repositório
 
-git clone https://github.com/GustavoCachoeira/Projeto-RPG-web.git
+Se você tiver o Git instalado, clone o repositório com o seguinte comando:
+
+```bash
+git clone <URL_DO_REPOSITORIO>
+cd rpg-lobby
+```
 
 
-2.Instale as dependências
+2.Crie um Banco de Dados
+Abra o terminal do PostgreSQL e crie um banco de dados chamado rpg_lobby_db
 
-cd server
+```sql
+CREATE DATABASE rpg_lobby_db;
+```
+Configure o Usuário e a Senha
+O projeto está configurado para usar o usuário tester com a senha 123456. Crie este usuário no PostgreSQL
+```sql
+CREATE USER tester WITH PASSWORD '123456';
+GRANT ALL PRIVILEGES ON DATABASE rpg_lobby_db TO tester;
+```
 
+Atualize o Arquivo de Configuração:
+No diretório rpg-lobby-backend, renomeie o arquivo .env.example para .env e verifique se ele contém as seguintes configurações:
+```env
+DATABASE_URL="postgresql://tester:123456@localhost:6060/rpg_lobby_db?schema=public"
+JWT_SECRET="minha-chave-secreta-123"
+```
+Se o seu PostgreSQL usa a porta padrão (5432), ajuste o DATABASE_URL
+
+
+3.Configurar o Back-end
+
+```
+cd rpg-lobby-backend
+```
+
+```
 npm install
+```
 
-cd ../client
+```
+npx prisma migrate dev --name init
+```
 
+```
+node index.js
+```
+
+4.Configurar o Front-end
+
+```
+cd rpg-lobby-frontend
+```
+
+```
 npm install
+```
+
+```
+npm start
+```
 
 
-3.Configure as variáveis de ambiente
+5.Testando o App
+Acesse a Aplicação: Abra o navegador e vá para http://localhost:3000. Você verá a página de login.
 
-Crie um arquivo .env na raiz do backend e defina as credenciais do banco de dados e chave JWT
+Registre Usuários:
+*Clique em "Registrar" e crie um usuário mestre:
+*Nome: Mestre
+*Email: mestre@example.com
+*Senha: 123456
+*Função: Mestre
 
+Crie também um usuário jogador:
+*Nome: Jogador
+*Email: jogador@example.com
+*Senha: 123456
+*Função: Jogador
 
-4.Rode o backend
+Faça login como mestre, crie um lobby e convide a conta de jogador
+Faça login como jogador, aceite o convite, saia do lobby
 
-cd server
+Em breve mais atualizações
 
-npm run dev
-
-
-5.Rode o frontend
-cd client
-npm run dev
+Erro de Dependências:
+Se houver erros ao executar npm install, tente deletar a pasta node_modules e o arquivo package-lock.json em ambos os diretórios (rpg-lobby-backend e rpg-lobby-frontend), e então execute npm install novamente.
 
 
 Planejamento do CRUD e Transação 🔄🗂️🔐
