@@ -2,13 +2,13 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const cors = require('cors'); // Adicione esta linha
+const cors = require('cors');
 
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(express.json());
-app.use(cors()); // Adicione esta linha para permitir requisições do front-end
+app.use(cors());
 
 // Rota de Registro
 app.post('/register', async (req, res) => {
@@ -41,20 +41,20 @@ app.post('/register', async (req, res) => {
 // Rota de Login
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-  console.log('Tentativa de login:', { email, password }); // Adicione este log
+  console.log('Tentativa de login:', { email, password });
   if (!email || !password) {
     return res.status(400).json({ error: 'Email e senha são obrigatórios' });
   }
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
-    console.log('Usuário encontrado:', user); // Adicione este log
+    console.log('Usuário encontrado:', user);
     if (!user) {
       return res.status(400).json({ error: 'Credenciais inválidas' });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    console.log('Senha válida?', isPasswordValid); // Adicione este log
+    console.log('Senha válida?', isPasswordValid);
     if (!isPasswordValid) {
       return res.status(400).json({ error: 'Credenciais inválidas' });
     }
@@ -81,7 +81,7 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, 'minha-chave-secreta-123'); // Substitua pela sua chave secreta
+    const decoded = jwt.verify(token, 'minha-chave-secreta-123');
     req.user = decoded;
     next();
   } catch (error) {
@@ -207,7 +207,6 @@ app.get('/invites', authenticateToken, async (req, res) => {
       const invites = await prisma.invite.findMany({
         where: {
           playerId: req.user.id,
-          // Removemos o filtro por status para incluir convites aceitos
         },
         include: {
           lobby: true,
