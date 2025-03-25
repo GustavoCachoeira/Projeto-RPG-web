@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import ConfirmModal from '../components/ConfirmModal'; // Importa o novo componente
+import ConfirmModal from '../components/ConfirmModal';
 
 function Dashboard() {
   const [user, setUser] = useState(null);
