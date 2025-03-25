@@ -1,145 +1,117 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+const cors = require('cors'); // Adicione esta linha
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'seu-segredo-aqui';
 
-// Middleware para parsear JSON
 app.use(express.json());
+app.use(cors()); // Adicione esta linha para permitir requisições do front-end
 
 // Rota de Registro
 app.post('/register', async (req, res) => {
   const { name, email, password, role } = req.body;
-
-  // Validação básica
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !role) {
     return res.status(400).json({ error: 'Todos os campos são obrigatórios' });
+  }
+  if (role !== 'player' && role !== 'master') {
+    return res.status(400).json({ error: 'Função inválida' });
   }
 
   try {
-    // Verifica se o email já existe
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ error: 'Email já está em uso' });
+      return res.status(400).json({ error: 'Email já existe' });
     }
 
-    // Hash da senha
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Cria o usuário
     const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: role || 'player', // Default é "player"
-      },
+      data: { name, email, password: hashedPassword, role },
     });
 
-    res.status(201).json({ message: 'Usuário criado com sucesso', userId: user.id });
+    res.status(201).json({ message: 'Usuário registrado com sucesso' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Erro ao criar usuário' });
+    res.status(500).json({ error: 'Erro ao registrar usuário' });
   }
 });
 
 // Rota de Login
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
-  // Validação básica
+  console.log('Tentativa de login:', { email, password }); // Adicione este log
   if (!email || !password) {
     return res.status(400).json({ error: 'Email e senha são obrigatórios' });
   }
 
   try {
-    // Busca o usuário pelo email
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await prisma.user.findUnique({ where: { email } });
+    console.log('Usuário encontrado:', user); // Adicione este log
     if (!user) {
-      return res.status(401).json({ error: 'Credenciais inválidas' });
+      return res.status(400).json({ error: 'Credenciais inválidas' });
     }
 
-    // Verifica a senha
     const isPasswordValid = await bcrypt.compare(password, user.password);
+    console.log('Senha válida?', isPasswordValid); // Adicione este log
     if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Credenciais inválidas' });
+      return res.status(400).json({ error: 'Credenciais inválidas' });
     }
 
-    // Gera o token JWT
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '1h' } // Token expira em 1 hora
+      { id: user.id, role: user.role },
+      'minha-chave-secreta-123',
+      { expiresIn: '1h' }
     );
 
-    res.json({ message: 'Login bem-sucedido', token });
+    res.json({ token });
   } catch (error) {
-    console.error(error);
+    console.error('Erro no login:', error);
     res.status(500).json({ error: 'Erro ao fazer login' });
   }
 });
 
-// Middleware para proteger rotas (exemplo de uso futuro)
+// Middleware para verificar o token
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
+  const token = authHeader && authHeader.split(' ')[1];
   if (!token) {
-    return res.status(401).json({ error: 'Acesso negado' });
+    return res.status(401).json({ error: 'Token não fornecido' });
   }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Token inválido' });
-    }
-    req.user = user;
+  try {
+    const decoded = jwt.verify(token, 'minha-chave-secreta-123'); // Substitua pela sua chave secreta
+    req.user = decoded;
     next();
-  });
+  } catch (error) {
+    return res.status(403).json({ error: 'Token inválido' });
+  }
 };
 
-// Exemplo de rota protegida
-app.get('/protected', authenticateToken, (req, res) => {
-  res.json({ message: 'Rota protegida', user: req.user });
-});
-
-// Rota para criar um lobby (apenas mestres)
+// Rota para criar um lobby
 app.post('/lobbies', authenticateToken, async (req, res) => {
-    const { name } = req.body;
-    const user = req.user; // Dados do usuário autenticado pelo token
-  
-    // Verifica se o usuário é um mestre
-    if (user.role !== 'master') {
-      return res.status(403).json({ error: 'Apenas mestres podem criar lobbies' });
-    }
-  
-    // Validação básica
-    if (!name) {
-      return res.status(400).json({ error: 'O nome do lobby é obrigatório' });
-    }
-  
-    try {
-      // Cria o lobby no banco
-      const lobby = await prisma.lobby.create({
-        data: {
-          name,
-          masterId: user.id,
-        },
-      });
-  
-      res.status(201).json({ message: 'Lobby criado com sucesso', lobby });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Erro ao criar lobby' });
-    }
+  const { name } = req.body;
+  if (!name) {
+    return res.status(400).json({ error: 'Nome do lobby é obrigatório' });
+  }
+
+  if (req.user.role !== 'master') {
+    return res.status(403).json({ error: 'Apenas mestres podem criar lobbies' });
+  }
+
+  try {
+    const lobby = await prisma.lobby.create({
+      data: {
+        name,
+        masterId: req.user.id,
+      },
+    });
+    res.status(201).json(lobby);
+  } catch (error) {
+    console.error('Erro ao criar lobby:', error);
+    res.status(500).json({ error: 'Erro ao criar lobby' });
+  }
 });
   
 // Rota para listar lobbies do mestre (opcional)
@@ -219,16 +191,32 @@ app.post('/invites', authenticateToken, async (req, res) => {
   
 // Rota para listar convites recebidos (apenas jogadores)
 app.get('/invites', authenticateToken, async (req, res) => {
-  const user = req.user;
-  
   try {
-    const invites = await prisma.invite.findMany({
-      where: { playerId: user.id, status: 'pending' },
-      include: { lobby: true }, // Inclui detalhes do lobby
-    });
-    res.json(invites);
+    if (req.user.role === 'master') {
+      const invites = await prisma.invite.findMany({
+        where: {
+          lobby: { masterId: req.user.id },
+        },
+        include: {
+          lobby: true,
+          player: true,
+        },
+      });
+      res.json(invites);
+    } else {
+      const invites = await prisma.invite.findMany({
+        where: {
+          playerId: req.user.id,
+          // Removemos o filtro por status para incluir convites aceitos
+        },
+        include: {
+          lobby: true,
+        },
+      });
+      res.json(invites);
+    }
   } catch (error) {
-    console.error(error);
+    console.error('Erro ao listar convites:', error);
     res.status(500).json({ error: 'Erro ao listar convites' });
   }
 });
@@ -272,7 +260,70 @@ app.patch('/invites/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// Rota para listar os lobbies que o jogador ingressou
+app.get('/player-lobbies', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'player') {
+    return res.status(403).json({ error: 'Apenas jogadores podem acessar esta rota' });
+  }
+
+  try {
+    const invites = await prisma.invite.findMany({
+      where: {
+        playerId: req.user.id,
+        status: 'accepted',
+      },
+      include: {
+        lobby: {
+          include: {
+            master: true,
+          },
+        },
+      },
+    });
+
+    const lobbies = invites.map((invite) => ({
+      ...invite.lobby,
+      inviteId: invite.id,
+    }));
+    res.json(lobbies);
+  } catch (error) {
+    console.error('Erro ao listar lobbies do jogador:', error);
+    res.status(500).json({ error: 'Erro ao listar lobbies' });
+  }
+});
+
+app.delete('/invites/:id', authenticateToken, async (req, res) => {
+  const inviteId = parseInt(req.params.id);
+  console.log('Tentando deletar convite com ID:', inviteId, 'Usuário:', req.user);
+
+  try {
+    const invite = await prisma.invite.findUnique({
+      where: { id: inviteId },
+    });
+    console.log('Convite encontrado:', invite);
+
+    if (!invite) {
+      return res.status(404).json({ error: 'Convite não encontrado' });
+    }
+
+    if (invite.playerId !== req.user.id) {
+      return res.status(403).json({ error: 'Você não tem permissão para sair deste lobby' });
+    }
+
+    await prisma.invite.delete({
+      where: { id: inviteId },
+    });
+    console.log('Convite deletado com sucesso:', inviteId);
+
+    res.json({ message: 'Você saiu do lobby com sucesso' });
+  } catch (error) {
+    console.error('Erro ao deletar convite:', error);
+    res.status(500).json({ error: 'Erro ao sair do lobby' });
+  }
+});
+
 // Inicia o servidor
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
