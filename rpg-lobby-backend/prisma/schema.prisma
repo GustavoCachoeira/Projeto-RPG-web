@@ -9,11 +9,10 @@ datasource db {
 
 model User {
   id        Int      @id @default(autoincrement())
-  name      String
   email     String   @unique
   password  String
-  role      String
-  createdAt DateTime @default(now())
+  name      String
+  role      String   @default("player")
   lobbies   Lobby[]  @relation("MasterLobbies")
   invites   Invite[]
   characterSheets CharacterSheet[]
@@ -25,8 +24,9 @@ model Lobby {
   masterId  Int
   master    User     @relation("MasterLobbies", fields: [masterId], references: [id])
   invites   Invite[]
-  createdAt DateTime @default(now())
   characterSheets CharacterSheet[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Invite {
@@ -40,18 +40,32 @@ model Invite {
 }
 
 model CharacterSheet {
-  id          Int      @id @default(autoincrement())
-  playerId    Int
-  player      User     @relation(fields: [playerId], references: [id])
-  lobbyId     Int
-  lobby       Lobby    @relation(fields: [lobbyId], references: [id])
-  name        String
-  strength    Int      @default(8)
-  constitution Int     @default(8)
-  dexterity   Int      @default(8)
-  intelligence Int     @default(8)
-  wisdom      Int      @default(8)
-  charisma    Int      @default(8)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            Int        @id @default(autoincrement())
+  playerId      Int
+  player        User       @relation(fields: [playerId], references: [id])
+  lobbyId       Int
+  lobby         Lobby      @relation(fields: [lobbyId], references: [id])
+  name          String
+  class         String?    // Campo opcional para classe
+  subclass      String?    // Campo opcional para subclasse
+  level         Int        @default(1) // Nível padrão 1
+  xp            Int        @default(0) // XP padrão 0
+  strength      Int        @default(8)
+  constitution  Int        @default(8)
+  dexterity     Int        @default(8)
+  intelligence  Int        @default(8)
+  wisdom        Int        @default(8)
+  charisma      Int        @default(8)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  inventory     Inventory[]
+}
+
+model Inventory {
+  id             Int           @id @default(autoincrement())
+  characterSheetId Int
+  characterSheet CharacterSheet @relation(fields: [characterSheetId], references: [id], onDelete: Cascade)
+  itemName       String
+  quantity       Int           @default(1)
+  createdAt      DateTime      @default(now())
 }

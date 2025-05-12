@@ -11,6 +11,10 @@ function CharacterSheetViewModal({ isOpen, onClose, sheet }) {
         </h3>
         <div className="mb-4">
           <p className="text-gray-700 font-medium">Jogador: {sheet.player?.name || 'Desconhecido'}</p>
+          <p className="text-gray-700">Classe: {sheet.class || 'Nenhuma'}</p>
+          <p className="text-gray-700">Subclasse: {sheet.subclass || 'Nenhuma'}</p>
+          <p className="text-gray-700">Nível: {sheet.level}</p>
+          <p className="text-gray-700">XP: {sheet.xp}</p>
         </div>
         <div className="mb-4">
           <h4 className="text-md font-medium mb-2">Atributos</h4>
@@ -48,6 +52,29 @@ function CharacterSheetViewModal({ isOpen, onClose, sheet }) {
               </tr>
             </tbody>
           </table>
+        </div>
+        <div className="mb-4">
+          <h4 className="text-md font-medium mb-2">Inventário</h4>
+          {sheet.inventory && sheet.inventory.length > 0 ? (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="border p-2">Item</th>
+                  <th className="border p-2">Quantidade</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sheet.inventory.map((item, index) => (
+                  <tr key={index}>
+                    <td className="border p-2">{item.itemName}</td>
+                    <td className="border p-2">{item.quantity}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-gray-600">Nenhum item no inventário.</p>
+          )}
         </div>
         <div className="flex justify-center">
           <button
