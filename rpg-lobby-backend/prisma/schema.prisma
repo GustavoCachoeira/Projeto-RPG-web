@@ -8,55 +8,50 @@ datasource db {
 }
 
 model User {
-  id          Int             @id @default(autoincrement())
-  name        String
-  email       String          @unique
-  password    String
-  role        String          @default("player") // "player" ou "master"
-  createdAt   DateTime        @default(now())
-  lobbies     Lobby[]         @relation("MasterLobbies")
-  invites     Invite[]        @relation("PlayerInvites")
-  sheets      CharacterSheet[]
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      String
+  createdAt DateTime @default(now())
+  lobbies   Lobby[]  @relation("MasterLobbies")
+  invites   Invite[]
+  characterSheets CharacterSheet[]
 }
 
 model Lobby {
-  id          Int             @id @default(autoincrement())
-  name        String
-  masterId    Int
-  master      User            @relation("MasterLobbies", fields: [masterId], references: [id])
-  sheets      CharacterSheet[]
-  invites     Invite[]
-  createdAt   DateTime        @default(now())
-}
-
-model CharacterSheet {
-  id          Int             @id @default(autoincrement())
-  playerId    Int
-  lobbyId     Int
-  player      User            @relation(fields: [playerId], references: [id])
-  lobby       Lobby           @relation(fields: [lobbyId], references: [id])
-  data        Json?           // Mantido como opcional para outros dados da ficha
-  skills      Skill[]         // Relação com a nova tabela de habilidades
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-}
-
-model Skill {
-  id          Int             @id @default(autoincrement())
-  sheetId     Int
-  sheet       CharacterSheet  @relation(fields: [sheetId], references: [id])
-  name        String          // Nome da habilidade
-  origin      String          // Origem da habilidade
-  description String          // Descrição detalhada
-  createdAt   DateTime        @default(now())
+  id        Int      @id @default(autoincrement())
+  name      String
+  masterId  Int
+  master    User     @relation("MasterLobbies", fields: [masterId], references: [id])
+  invites   Invite[]
+  createdAt DateTime @default(now())
+  characterSheets CharacterSheet[]
 }
 
 model Invite {
-  id          Int             @id @default(autoincrement())
-  lobbyId     Int
+  id        Int      @id @default(autoincrement())
+  lobbyId   Int
+  lobby     Lobby    @relation(fields: [lobbyId], references: [id])
+  playerId  Int
+  player    User     @relation(fields: [playerId], references: [id])
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+}
+
+model CharacterSheet {
+  id          Int      @id @default(autoincrement())
   playerId    Int
-  lobby       Lobby           @relation(fields: [lobbyId], references: [id])
-  player      User            @relation("PlayerInvites", fields: [playerId], references: [id])
-  status      String          @default("pending")
-  createdAt   DateTime        @default(now())
+  player      User     @relation(fields: [playerId], references: [id])
+  lobbyId     Int
+  lobby       Lobby    @relation(fields: [lobbyId], references: [id])
+  name        String
+  strength    Int      @default(8)
+  constitution Int     @default(8)
+  dexterity   Int      @default(8)
+  intelligence Int     @default(8)
+  wisdom      Int      @default(8)
+  charisma    Int      @default(8)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

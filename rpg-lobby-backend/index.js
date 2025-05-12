@@ -321,6 +321,86 @@ app.delete('/invites/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/character-sheets', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'player') {
+    return res.status(403).json({ error: 'Apenas jogadores podem criar fichas' });
+  }
+  const { lobbyId, name, strength, constitution, dexterity, intelligence, wisdom, charisma } = req.body;
+  try {
+    console.log('Recebido:', { lobbyId, name, strength, constitution, dexterity, intelligence, wisdom, charisma }); // Log dos dados recebidos
+    const invite = await prisma.invite.findFirst({
+      where: { lobbyId: parseInt(lobbyId), playerId: req.user.id, status: 'accepted' },
+    });
+    if (!invite) {
+      return res.status(403).json({ error: 'Você não está nesse lobby' });
+    }
+    const characterSheet = await prisma.characterSheet.create({
+      data: {
+        playerId: req.user.id,
+        lobbyId: parseInt(lobbyId),
+        name,
+        strength: strength !== undefined ? parseInt(strength) : 8,
+        constitution: constitution !== undefined ? parseInt(constitution) : 8,
+        dexterity: dexterity !== undefined ? parseInt(dexterity) : 8,
+        intelligence: intelligence !== undefined ? parseInt(intelligence) : 8,
+        wisdom: wisdom !== undefined ? parseInt(wisdom) : 8,
+        charisma: charisma !== undefined ? parseInt(charisma) : 8,
+      },
+    });
+    console.log('Ficha criada com sucesso:', characterSheet); // Log de sucesso
+    res.status(201).json(characterSheet);
+  } catch (err) {
+    console.error('Erro ao criar ficha:', err); // Log detalhado do erro
+    res.status(400).json({ error: 'Erro ao criar ficha: ' + err.message });
+  }
+});
+
+app.get('/character-sheets', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'player') {
+    return res.status(403).json({ error: 'Apenas jogadores podem listar fichas' });
+  }
+  const { lobbyId } = req.query;
+  try {
+    const characterSheets = await prisma.characterSheet.findMany({
+      where: { playerId: req.user.id, lobbyId: parseInt(lobbyId) },
+    });
+    res.json(characterSheets);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao listar fichas' });
+  }
+});
+
+app.patch('/character-sheets/:id', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'player') {
+    return res.status(403).json({ error: 'Apenas jogadores podem editar fichas' });
+  }
+  const { id } = req.params;
+  const { name, strength, constitution, dexterity, intelligence, wisdom, charisma } = req.body;
+  try {
+    const characterSheet = await prisma.characterSheet.findUnique({
+      where: { id: parseInt(id) },
+    });
+    if (!characterSheet || characterSheet.playerId !== req.user.id) {
+      return res.status(403).json({ error: 'Ficha inválida ou não autorizada' });
+    }
+    const updatedSheet = await prisma.characterSheet.update({
+      where: { id: parseInt(id) },
+      data: {
+        name,
+        strength: strength !== undefined ? strength : characterSheet.strength,
+        constitution: constitution !== undefined ? constitution : characterSheet.constitution,
+        dexterity: dexterity !== undefined ? dexterity : characterSheet.dexterity,
+        intelligence: intelligence !== undefined ? intelligence : characterSheet.intelligence,
+        wisdom: wisdom !== undefined ? wisdom : characterSheet.wisdom,
+        charisma: charisma !== undefined ? charisma : characterSheet.charisma,
+      },
+    });
+    res.json(updatedSheet);
+  } catch (err) {
+    res.status(400).json({ error: 'Erro ao atualizar ficha' });
+  }
+});
+
 // Inicia o servidor
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Adiciona Link para navegação
 import ConfirmModal from '../components/ConfirmModal';
 
 function Dashboard() {
@@ -13,8 +13,8 @@ function Dashboard() {
   const [playerEmail, setPlayerEmail] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para controlar o modal
-  const [selectedInviteId, setSelectedInviteId] = useState(null); // Estado para armazenar o inviteId
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedInviteId, setSelectedInviteId] = useState(null);
   const navigate = useNavigate();
 
   const fetchLobbies = async (token) => {
@@ -125,19 +125,16 @@ function Dashboard() {
     }
   };
 
-  // Função para abrir o modal
   const openModal = (inviteId) => {
     setSelectedInviteId(inviteId);
     setIsModalOpen(true);
   };
 
-  // Função para fechar o modal
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedInviteId(null);
   };
 
-  // Função para confirmar a saída do lobby
   const confirmLeaveLobby = () => {
     if (selectedInviteId) {
       handleLeaveLobby(selectedInviteId);
@@ -298,23 +295,30 @@ function Dashboard() {
                         Mestre: {lobby.master?.name || 'Desconhecido'} | Criado em: {new Date(lobby.createdAt).toLocaleDateString()}
                       </p>
                     </div>
-                    {lobby.inviteId ? (
-                      <button
-                        onClick={() => openModal(lobby.inviteId)} // Abre o modal ao clicar
-                        className="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition"
+                    <div className="space-x-2">
+                      <Link
+                        to={`/character-sheets/${lobby.id}`}
+                        className="bg-green-600 text-white p-2 rounded-lg hover:bg-green-700 transition"
                       >
-                        Sair do Lobby
-                      </button>
-                    ) : (
-                      <p className="text-red-500">Convite não encontrado</p>
-                    )}
+                        Jogar
+                      </Link>
+                      {lobby.inviteId ? (
+                        <button
+                          onClick={() => openModal(lobby.inviteId)}
+                          className="bg-red-600 text-white p-2 rounded-lg hover:bg-red-700 transition"
+                        >
+                          Sair do Lobby
+                        </button>
+                      ) : (
+                        <p className="text-red-500">Convite não encontrado</p>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
             )}
           </div>
 
-          {/* Adiciona o ConfirmModal */}
           <ConfirmModal
             isOpen={isModalOpen}
             onClose={closeModal}

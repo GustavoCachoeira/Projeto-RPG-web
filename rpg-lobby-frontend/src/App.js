@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import CharacterSheets from './pages/CharacterSheets'; // Importa a nova página
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/character-sheets/:lobbyId" element={<CharacterSheets />} /> {/* Nova rota */}
         </Routes>
       </div>
     </Router>
