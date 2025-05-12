@@ -401,6 +401,29 @@ app.patch('/character-sheets/:id', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/lobbies/:id/character-sheets', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'master') {
+    return res.status(403).json({ error: 'Apenas mestres podem visualizar fichas' });
+  }
+  const { id } = req.params;
+  try {
+    const lobby = await prisma.lobby.findUnique({
+      where: { id: parseInt(id) },
+    });
+    if (!lobby || lobby.masterId !== req.user.id) {
+      return res.status(403).json({ error: 'Lobby inválido ou não autorizado' });
+    }
+    const characterSheets = await prisma.characterSheet.findMany({
+      where: { lobbyId: parseInt(id) },
+      include: { player: { select: { name: true } } }, // Inclui o nome do jogador
+    });
+    res.json(characterSheets);
+  } catch (err) {
+    console.error('Erro ao listar fichas do lobby:', err);
+    res.status(500).json({ error: 'Erro ao listar fichas do lobby' });
+  }
+});
+
 // Inicia o servidor
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

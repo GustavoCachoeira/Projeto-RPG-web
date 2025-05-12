@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom'; // Adiciona Link para navegação
+import { useNavigate, Link } from 'react-router-dom';
 import ConfirmModal from '../components/ConfirmModal';
 
 function Dashboard() {
@@ -221,6 +221,12 @@ function Dashboard() {
                         >
                           Convidar
                         </button>
+                        <Link
+                          to={`/lobbies/${lobby.id}`}
+                          className="bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition"
+                        >
+                          Abrir Lobby
+                        </Link>
                       </div>
                     </div>
                   </li>
